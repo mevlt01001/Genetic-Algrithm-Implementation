@@ -2,34 +2,56 @@
 #include <random>
 #include <bitset>
 #include <cmath>
+#include <vector>
 
 using namespace std;
 
 class Individual {
 public:
-    double x,y;
+    double x,y,fitness_score;
+    string binary_code;
     string gray_code;
+
     static mt19937 gen;
 
     Individual(){
-        this->x = this->get_random_number(-10,10);
-        this->y = this->get_random_number(-10,10);
+        this->x = this->get_random_number(-10,10,3, &binary_code);
+        this->y = this->get_random_number(-10,10,3);
+        this->fitness_score = this->calc_fitness(this->x, this->y);
         this->gray_code = this->double2gray(this->x) + this->double2gray(this->y);
     }
     Individual(double x, double y){
         this->x = x;
         this->y = y;
+        this->fitness_score = this->calc_fitness(this->x, this->y);
         this->gray_code = this->double2gray(this->x) + this->double2gray(this->y);
     }
     Individual(string gray_code){
         this->gray_code = gray_code;
         this->x = this->gray2double(gray_code.substr(0,9));
-        this->y = this->gray2double(gray_code.substr(9,9));    
+        this->y = this->gray2double(gray_code.substr(9,9));  
+        this->fitness_score = this->calc_fitness(this->x, this->y);  
     }
 
-static double get_random_number(int min, int max){
-    uniform_real_distribution<> dis(min, max);
-    return dis(gen);
+static double calc_fitness(double x, double y){
+    return pow((x + 2 * y - 7), 2) + pow((2 * x + y - 5), 2);
+}
+static int find_presentable_bits_count(int range){
+    int bit = 0;
+    while((pow(2,bit)-1)<range){
+        bit++;
+    }
+    return bit
+}
+double get_random_number(int min, int max, int precision){
+    int range = (max - min)*pow(10,precision);
+    int bits = find_presentable_bits_count(range);
+
+    uniform_int_distribution<> dis(0, range);
+    int range = dis(gen);
+    this->binary_code = bitset<bits>(range).to_string();
+    
+    double x = min + (range/(pow(2,bits)-1)*(max-min));
 }
 
 static string double2binary(double x, int precision=4){
@@ -103,15 +125,59 @@ static double gray2double(string gray){
 
 mt19937 Individual::gen(random_device{}());
 
+class Population {
+    public:
+    vector<Individual> population;
+    double min_fitness_score_index;
+
+    Population(int population_size){
+        for (int i = 0; i < population_size; i++) {
+            population.push_back(Individual());
+        }
+        min_fitness_score_index = get_min_fitness_score_index(this->population);
+    }
+
+    static vector<Individual> next_generation(vector<Individual> population, double elitist_ratio, int tournament_size){
+        /*
+        1- find elitist popülation(%5)
+        2- tournament selection
+            1- random select tournament_size individual
+            2- select the best 2 parent
+            3- generate child
+
+
+        */
+    }
+
+    static int get_min_fitness_score_index(vector<Individual> population){
+        int min_fitness_score_index = 0;
+        double min_fitness_score = population[0].fitness_score;
+        for (int i = 1; i < population.size(); i++) {
+            if (population[i].fitness_score < min_fitness_score) {
+                min_fitness_score_index = i;
+                min_fitness_score = population[i].fitness_score;
+            }
+        }
+        return min_fitness_score_index;
+    }
+};
+
+vector<Individual> elit_population(vector<Individual> population, double elitist_ratio){
+    int elitist_count = int(population.size() * elitist_ratio);
+    vector<Individual> elitist;
+
+    int min_fitness = population[0].fitness_score;
+
+    for (int i = 0; i < elitist_count; i++) {
+        elitist.push_back(population[i]);
+    }
+    return elitist;
+}
+
+vector<Individual> selection(vector<Individual> population, double elitist_ratio, int tournament_size){
+}
+
 
 int main() {
-    double org_x = -3.75;
-    double org_y = 2.25;
 
-    Individual ind = Individual(org_x, org_y);
-    cout << ind.x << " " << ind.y << endl;
-    cout << ind.gray_code << endl;
-
-    Individual org = Individual(ind.gray_code);
-    cout << org.x << " " << org.y << endl;
 }
