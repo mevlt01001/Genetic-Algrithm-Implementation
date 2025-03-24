@@ -175,10 +175,20 @@ int Population::max_fes = 10000;
 int Population::current_fes = 0;
 
 int main() {
-    int population_size = 100;
-    int tournament_size = 5;
-    double mutation_rate = 0.01;
 
+    cout << "Population size: ";
+    int population_size;
+    cin >> population_size;
+    cout << "Mutation rate: ";
+    double mutation_rate;
+    cin >> mutation_rate;
+    cout << "Tournament size: ";
+    int tournament_size;
+    cin >> tournament_size;
+    cout << "Max FES: ";
+    int max_fes;
+    cin >> max_fes;
+    Population::max_fes = max_fes;
 
     Population current_population(population_size);
     Population::current_fes = population_size;
